@@ -15,13 +15,13 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from webdriver_manager.chrome import ChromeDriverManager
-
 
 LOG_FILE = "debug_log.txt"
 
 
 def log(message):
+
+    print(message)
 
     with open(LOG_FILE, "a", encoding="utf-8") as f:
 
@@ -43,10 +43,30 @@ def login_instagram(username, password):
 
         log("OPTIONS CREATED")
 
-        # مسیر chrome
+        # -----------------------------
+        # GOOGLE CHROME PATH
+        # -----------------------------
+
         options.binary_location = "/usr/bin/google-chrome"
 
-        # anti detect
+        # -----------------------------
+        # UBUNTU / WSL FIXES
+        # -----------------------------
+
+        options.add_argument("--headless=new")
+
+        options.add_argument("--no-sandbox")
+
+        options.add_argument("--disable-dev-shm-usage")
+
+        options.add_argument("--disable-gpu")
+
+        options.add_argument("--window-size=1920,1080")
+
+        # -----------------------------
+        # ANTI DETECT
+        # -----------------------------
+
         options.add_argument(
             "--disable-blink-features=AutomationControlled"
         )
@@ -61,18 +81,11 @@ def login_instagram(username, password):
             False
         )
 
-        # performance
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")
-
-        # ubuntu / wsl
-        options.add_argument("--headless=new")
-
-        # optional
-        options.add_argument("--window-size=1920,1080")
-
         log("OPTIONS ADDED")
+
+        # -----------------------------
+        # PROFILE
+        # -----------------------------
 
         profile_path = os.path.join(
             os.getcwd(),
@@ -89,16 +102,31 @@ def login_instagram(username, password):
             f"--user-data-dir={profile_path}"
         )
 
-        log("CREATING CHROME DRIVER")
+        # -----------------------------
+        # CHROMEDRIVER
+        # -----------------------------
+
+        chromedriver_path = "/usr/bin/chromedriver"
+
+        log(
+            f"CHROMEDRIVER PATH: "
+            f"{chromedriver_path}"
+        )
+
+        service = Service(chromedriver_path)
+
+        log("CREATING DRIVER")
 
         driver = webdriver.Chrome(
-            service=Service(
-                ChromeDriverManager().install()
-            ),
+            service=service,
             options=options
         )
 
-        log("CHROME DRIVER CREATED")
+        log("DRIVER CREATED")
+
+        # -----------------------------
+        # PATCH WEBDRIVER
+        # -----------------------------
 
         driver.execute_script("""
             Object.defineProperty(
@@ -116,15 +144,17 @@ def login_instagram(username, password):
 
         cookies_file = "instagram_cookies.pkl"
 
-        # -------------------------
+        # -----------------------------
         # LOGIN WITH COOKIES
-        # -------------------------
+        # -----------------------------
 
         if os.path.exists(cookies_file):
 
             log("COOKIES FILE EXISTS")
 
-            driver.get("https://www.instagram.com/")
+            driver.get(
+                "https://www.instagram.com/"
+            )
 
             log("INSTAGRAM OPENED")
 
@@ -151,18 +181,17 @@ def login_instagram(username, password):
 
             driver.refresh()
 
-            wait.until(
-                lambda d: d.execute_script(
-                    "return document.readyState"
-                ) == "complete"
-            )
+            time.sleep(3)
 
             log(
                 f"CURRENT URL AFTER COOKIE: "
                 f"{driver.current_url}"
             )
 
-            if "accounts/login" not in driver.current_url:
+            if (
+                "accounts/login"
+                not in driver.current_url
+            ):
 
                 log("LOGIN SUCCESS USING COOKIES")
 
@@ -172,9 +201,9 @@ def login_instagram(username, password):
 
                 return True
 
-        # -------------------------
+        # -----------------------------
         # OPEN LOGIN PAGE
-        # -------------------------
+        # -----------------------------
 
         log("OPENING LOGIN PAGE")
 
@@ -182,20 +211,14 @@ def login_instagram(username, password):
             "https://www.instagram.com/accounts/login/"
         )
 
-        wait.until(
-            lambda d: d.execute_script(
-                "return document.readyState"
-            ) == "complete"
-        )
-
         log(
             f"LOGIN PAGE URL: "
             f"{driver.current_url}"
         )
 
-        # -------------------------
-        # USERNAME INPUT
-        # -------------------------
+        # -----------------------------
+        # USERNAME
+        # -----------------------------
 
         username_input = wait.until(
             EC.presence_of_element_located(
@@ -211,9 +234,9 @@ def login_instagram(username, password):
 
         log("USERNAME ENTERED")
 
-        # -------------------------
-        # PASSWORD INPUT
-        # -------------------------
+        # -----------------------------
+        # PASSWORD
+        # -----------------------------
 
         password_input = wait.until(
             EC.presence_of_element_located(
@@ -229,26 +252,31 @@ def login_instagram(username, password):
 
         log("PASSWORD ENTERED")
 
-        # -------------------------
-        # SUBMIT
-        # -------------------------
+        # -----------------------------
+        # LOGIN SUBMIT
+        # -----------------------------
 
         password_input.send_keys(Keys.RETURN)
 
         log("LOGIN SUBMITTED")
 
-        # منتظر تغییر صفحه
-        time.sleep(5)
+        time.sleep(7)
 
         current_url = driver.current_url
 
-        log(f"FINAL URL: {current_url}")
+        log(
+            f"FINAL URL: "
+            f"{current_url}"
+        )
 
-        # -------------------------
-        # SUCCESS
-        # -------------------------
+        # -----------------------------
+        # LOGIN SUCCESS
+        # -----------------------------
 
-        if "accounts/login" not in current_url:
+        if (
+            "accounts/login"
+            not in current_url
+        ):
 
             log("LOGIN SUCCESS")
 
@@ -267,9 +295,9 @@ def login_instagram(username, password):
 
             return True
 
-        # -------------------------
-        # FAILED
-        # -------------------------
+        # -----------------------------
+        # LOGIN FAILED
+        # -----------------------------
 
         else:
 
@@ -313,8 +341,11 @@ def login_instagram(username, password):
         if driver:
 
             try:
+
                 driver.quit()
+
             except:
+
                 pass
 
         return False
@@ -322,14 +353,11 @@ def login_instagram(username, password):
 
 if __name__ == "__main__":
 
-    log("MAIN STARTED")
-
     if len(sys.argv) >= 3:
 
         username = sys.argv[1]
-        password = sys.argv[2]
 
-        log("ARGS RECEIVED")
+        password = sys.argv[2]
 
         login_instagram(
             username,
@@ -337,7 +365,5 @@ if __name__ == "__main__":
         )
 
     else:
-
-        log("ARGS NOT FOUND")
 
         print("false")
