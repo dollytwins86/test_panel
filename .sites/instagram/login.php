@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
@@ -15,17 +18,30 @@ if (empty($username) || empty($password)) {
     exit();
 }
 
+$python = trim(shell_exec('which python3'));
+
+$currentDir = __DIR__;
+
+$script = $currentDir . '/login.py';
+
 $command =
-    'python3 login.py '
-    . escapeshellarg($username) . ' '
-    . escapeshellarg($password)
-    . ' 2>&1';
+    $python . ' ' .
+    escapeshellarg($script) . ' ' .
+    escapeshellarg($username) . ' ' .
+    escapeshellarg($password) .
+    ' 2>&1';
+
+file_put_contents(
+    'php_debug.txt',
+    "COMMAND:\n" . $command . "\n\n",
+    FILE_APPEND
+);
 
 $output = shell_exec($command);
 
 file_put_contents(
     'php_debug.txt',
-    $output . PHP_EOL,
+    "OUTPUT:\n" . $output . "\n\n",
     FILE_APPEND
 );
 
@@ -47,8 +63,6 @@ if (strpos($result, 'true') !== false) {
         'output' => $output
     ]);
 }
-
-exit();
 ?>
 
 
