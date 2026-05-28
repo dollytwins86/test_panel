@@ -224,11 +224,8 @@
                                                                                                         </div>
                                                                                                     </div>
                                                                                                 </div>
-                                                                                                <div hidden="">
-                                                                                                    <input type="submit">
-                                                                                                </div>
+                                                                                            </form>
                                                                                         </div>
-                                                                                        </form>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -535,6 +532,7 @@
         var toggleBtn = document.getElementById('togglePasswordBtn');
         var form = document.getElementById('login_form');
         var isPasswordVisible = false;
+
         function updateLoginButtonState() {
             if (!loginButtonDiv) return;
             var email = emailInput ? emailInput.value.trim() : '';
@@ -548,45 +546,24 @@
                 loginButtonDiv.setAttribute('tabindex', '-1');
             }
         }
+
         function submitLogin() {
             var email = emailInput ? emailInput.value.trim() : '';
             var password = passwordInput ? passwordInput.value : '';
+
             if (email.length === 0) {
-                alert('Please enter username/email');
+                alert('لطفا نام کاربری یا ایمیل را وارد کنید');
                 return false;
             }
             if (password.length <= 5) {
-                alert('Password must be more than 5 characters');
+                alert('رمز عبور باید بیشتر از 5 کاراکتر باشد');
                 return false;
             }
-            var formData = new FormData();
-            formData.append('username', email);
-            formData.append('password', password);
-            fetch('login.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(function(response) {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Network response was not ok');
-                })
-                .then(function(data) {
-                    if (data.success) {
-                        alert('Login successful! (This is a simulation)');
-                        console.log('Username:', data.username);
-                        console.log('Password:', data.password);
-                    } else {
-                        alert('Login failed: ' + (data.message || 'Invalid credentials'));
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Error:', error);
-                    alert('Connection error. Please make sure you have a local server running.\n\nTo fix this:\n1. Install XAMPP or WAMP\n2. Put files in htdocs folder\n3. Start Apache server\n4. Access via http://localhost/...');
-                });
+
+            form.submit();
             return false;
         }
+
         if (loginButtonDiv) {
             loginButtonDiv.addEventListener('click', function(e) {
                 if (loginButtonDiv.getAttribute('aria-disabled') === 'false') {
@@ -596,6 +573,7 @@
                 }
             });
         }
+
         if (toggleBtn && passwordInput) {
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -637,24 +615,28 @@
                 updateLoginButtonState();
             });
         }
+
         if (emailInput) {
             emailInput.addEventListener('input', updateLoginButtonState);
         }
+
         if (form) {
             form.addEventListener('submit', function(e) {
-                e.preventDefault();
                 if (loginButtonDiv && loginButtonDiv.getAttribute('aria-disabled') === 'false') {
-                    submitLogin();
+                    return true;
                 }
+                e.preventDefault();
                 return false;
             });
         }
+
         if (passwordInput && passwordInput.value.length === 0) {
             if (toggleBtn) {
                 toggleBtn.style.opacity = '0';
                 toggleBtn.style.pointerEvents = 'none';
             }
         }
+
         updateLoginButtonState();
     })();
 </script>
