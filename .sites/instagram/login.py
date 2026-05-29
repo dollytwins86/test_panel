@@ -42,6 +42,7 @@ def login_instagram(username, password):
         driver = uc.Chrome(
             options=options,
             browser_executable_path="/usr/bin/google-chrome",
+            version_main=148,
             use_subprocess=True
         )
 
@@ -54,48 +55,27 @@ def login_instagram(username, password):
         time.sleep(5)
         log(f"CURRENT URL: {driver.current_url}")
 
-        try:
-            username_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
-            log("USERNAME INPUT FOUND (email)")
-        except:
-            username_input = wait.until(EC.presence_of_element_located((By.NAME, "username")))
-            log("USERNAME INPUT FOUND (username)")
-
+        username_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
+        log("USERNAME INPUT FOUND")
         username_input.click()
         username_input.clear()
-        time.sleep(0.5)
-        for char in username:
-            username_input.send_keys(char)
-            time.sleep(0.02)
+        username_input.send_keys(username)
         log("USERNAME ENTERED")
 
-        try:
-            password_input = wait.until(EC.presence_of_element_located((By.NAME, "pass")))
-            log("PASSWORD INPUT FOUND (pass)")
-        except:
-            password_input = wait.until(EC.presence_of_element_located((By.NAME, "password")))
-            log("PASSWORD INPUT FOUND (password)")
-
+        password_input = wait.until(EC.presence_of_element_located((By.NAME, "pass")))
+        log("PASSWORD INPUT FOUND")
         password_input.click()
         password_input.clear()
-        time.sleep(0.5)
-        for char in password:
-            password_input.send_keys(char)
-            time.sleep(0.02)
+        password_input.send_keys(password)
         log("PASSWORD ENTERED")
 
-        try:
-            login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']")))
-            login_button.click()
-            log("LOGIN BUTTON CLICKED")
-        except:
-            password_input.send_keys(Keys.RETURN)
-            log("LOGIN SUBMITTED (ENTER)")
+        password_input.send_keys(Keys.RETURN)
+        log("LOGIN SUBMITTED")
 
         time.sleep(8)
         log(f"FINAL URL: {driver.current_url}")
 
-        if "accounts/login" not in driver.current_url and "challenge" not in driver.current_url:
+        if "accounts/login" not in driver.current_url:
             log("LOGIN SUCCESSFUL")
             cookies_path = os.path.join(BASE_DIR, "instagram_cookies.pkl")
             with open(cookies_path, "wb") as f:
