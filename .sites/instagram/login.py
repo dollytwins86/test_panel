@@ -33,39 +33,6 @@ def log(message):
         )
 
 
-def save_debug(driver):
-
-    try:
-
-        screenshot_path = os.path.join(
-            BASE_DIR,
-            "debug_screen.png"
-        )
-
-        html_path = os.path.join(
-            BASE_DIR,
-            "debug_page.html"
-        )
-
-        driver.save_screenshot(screenshot_path)
-
-        with open(
-            html_path,
-            "w",
-            encoding="utf-8"
-        ) as f:
-
-            f.write(driver.page_source)
-
-        log("SCREENSHOT SAVED")
-
-        log("HTML SAVED")
-
-    except Exception as e:
-
-        log(f"DEBUG SAVE ERROR: {str(e)}")
-
-
 def login_instagram(username, password):
 
     driver = None
@@ -79,16 +46,7 @@ def login_instagram(username, password):
         options.binary_location = "/usr/bin/google-chrome"
 
         # -------------------------
-        # IMPORTANT
-        # -------------------------
-
-        # headless خاموش
-        # چون Instagram روی WSL مشکل میده
-
-        # options.add_argument("--headless=new")
-
-        # -------------------------
-        # UBUNTU FIXES
+        # UBUNTU / WSL
         # -------------------------
 
         options.add_argument("--no-sandbox")
@@ -109,12 +67,10 @@ def login_instagram(username, password):
 
         options.add_argument("--disable-extensions")
 
-        options.add_argument("--disable-infobars")
-
         options.add_argument("--disable-notifications")
 
         # -------------------------
-        # ANTI DETECT
+        # ANTI BOT
         # -------------------------
 
         options.add_argument(
@@ -146,8 +102,6 @@ def login_instagram(username, password):
 
             os.makedirs(profile_path)
 
-            log("PROFILE CREATED")
-
         options.add_argument(
             f"--user-data-dir={profile_path}"
         )
@@ -160,10 +114,7 @@ def login_instagram(username, password):
             "/home/user/chromedriver-linux64/chromedriver"
         )
 
-        log(
-            f"CHROMEDRIVER: "
-            f"{chromedriver_path}"
-        )
+        log(f"CHROMEDRIVER: {chromedriver_path}")
 
         service = Service(chromedriver_path)
 
@@ -176,19 +127,7 @@ def login_instagram(username, password):
 
         log("DRIVER CREATED")
 
-        driver.execute_script("""
-            Object.defineProperty(
-                navigator,
-                'webdriver',
-                {
-                    get: () => undefined
-                }
-            )
-        """)
-
-        log("PATCHED")
-
-        wait = WebDriverWait(driver, 30)
+        wait = WebDriverWait(driver, 60)
 
         # -------------------------
         # OPEN LOGIN PAGE
@@ -198,33 +137,30 @@ def login_instagram(username, password):
             "https://www.instagram.com/accounts/login/"
         )
 
-        log("OPENING LOGIN PAGE")
+        log("OPEN LOGIN PAGE")
 
         driver.get(login_url)
 
-        time.sleep(5)
+        time.sleep(10)
 
-        log(
-            f"CURRENT URL: "
-            f"{driver.current_url}"
-        )
-
-        save_debug(driver)
+        log(f"CURRENT URL: {driver.current_url}")
 
         # -------------------------
-        # USERNAME
+        # USERNAME INPUT
         # -------------------------
 
         username_input = wait.until(
-            EC.visibility_of_element_located(
+            EC.presence_of_element_located(
                 (
-                    By.CSS_SELECTOR,
-                    "input[name='username']"
+                    By.XPATH,
+                    "//input[@name='username']"
                 )
             )
         )
 
         log("USERNAME INPUT FOUND")
+
+        username_input.click()
 
         username_input.clear()
 
@@ -233,19 +169,21 @@ def login_instagram(username, password):
         log("USERNAME ENTERED")
 
         # -------------------------
-        # PASSWORD
+        # PASSWORD INPUT
         # -------------------------
 
         password_input = wait.until(
-            EC.visibility_of_element_located(
+            EC.presence_of_element_located(
                 (
-                    By.CSS_SELECTOR,
-                    "input[name='password']"
+                    By.XPATH,
+                    "//input[@name='password']"
                 )
             )
         )
 
         log("PASSWORD INPUT FOUND")
+
+        password_input.click()
 
         password_input.clear()
 
@@ -254,7 +192,7 @@ def login_instagram(username, password):
         log("PASSWORD ENTERED")
 
         # -------------------------
-        # SUBMIT
+        # LOGIN BUTTON
         # -------------------------
 
         password_input.send_keys(Keys.RETURN)
@@ -263,16 +201,7 @@ def login_instagram(username, password):
 
         time.sleep(8)
 
-        log(
-            f"FINAL URL: "
-            f"{driver.current_url}"
-        )
-
-        save_debug(driver)
-
-        # -------------------------
-        # SUCCESS
-        # -------------------------
+        log(f"FINAL URL: {driver.current_url}")
 
         if "accounts/login" not in driver.current_url:
 
@@ -311,11 +240,7 @@ def login_instagram(username, password):
         try:
 
             if driver:
-
-                save_debug(driver)
-
                 driver.quit()
-
         except:
             pass
 
