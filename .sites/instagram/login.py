@@ -1,16 +1,16 @@
 import sys
+import os
 import time
 import pickle
-import os
 import traceback
 
-from selenium import webdriver
+import undetected_chromedriver as uc
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,12 +38,12 @@ def login_instagram(username, password):
 
         log("SCRIPT STARTED")
 
-        options = Options()
+        options = uc.ChromeOptions()
 
         options.binary_location = "/usr/bin/google-chrome"
 
         # -------------------------
-        # UBUNTU / WSL FIXES
+        # UBUNTU / WSL FIX
         # -------------------------
 
         options.add_argument("--no-sandbox")
@@ -56,8 +56,6 @@ def login_instagram(username, password):
 
         options.add_argument("--start-maximized")
 
-        options.add_argument("--remote-debugging-port=9222")
-
         # -------------------------
         # SPEED
         # -------------------------
@@ -65,26 +63,6 @@ def login_instagram(username, password):
         options.add_argument("--disable-extensions")
 
         options.add_argument("--disable-notifications")
-
-        # -------------------------
-        # ANTI BOT
-        # -------------------------
-
-        options.add_argument(
-            "--disable-blink-features=AutomationControlled"
-        )
-
-        options.add_experimental_option(
-            "excludeSwitches",
-            ["enable-automation"]
-        )
-
-        options.add_experimental_option(
-            "useAutomationExtension",
-            False
-        )
-
-        log("OPTIONS READY")
 
         # -------------------------
         # PROFILE
@@ -103,29 +81,26 @@ def login_instagram(username, password):
             f"--user-data-dir={profile_path}"
         )
 
-        # -------------------------
-        # CHROMEDRIVER
-        # -------------------------
-
-        chromedriver_path = (
-            "/home/user/chromedriver-linux64/chromedriver"
-        )
-
-        log(f"CHROMEDRIVER: {chromedriver_path}")
-
-        service = Service(chromedriver_path)
-
         log("CREATING DRIVER")
 
-        driver = webdriver.Chrome(
-            service=service,
-            options=options
+        driver = uc.Chrome(
+
+            options=options,
+
+            browser_executable_path="/usr/bin/google-chrome",
+
+            version_main=148,
+
+            use_subprocess=True
+
         )
 
         log("DRIVER CREATED")
 
+        wait = WebDriverWait(driver, 60)
+
         # -------------------------
-        # OPEN PAGE
+        # OPEN LOGIN PAGE
         # -------------------------
 
         login_url = (
@@ -136,56 +111,30 @@ def login_instagram(username, password):
 
         driver.get(login_url)
 
-        # صبر واقعی برای render
-        time.sleep(15)
+        time.sleep(8)
 
         log(f"CURRENT URL: {driver.current_url}")
 
         # -------------------------
-        # FIND INPUTS USING JS
+        # USERNAME INPUT
         # -------------------------
 
-        username_input = driver.execute_script("""
-            return document.querySelector(
-                "input[name='username']"
-            );
-        """)
+        username_input = wait.until(
 
-        password_input = driver.execute_script("""
-            return document.querySelector(
-                "input[name='password']"
-            );
-        """)
+            EC.presence_of_element_located(
 
-        if not username_input:
+                (
+                    By.NAME,
+                    "username"
+                )
 
-            log("USERNAME INPUT NOT FOUND")
+            )
 
-            print("false")
+        )
 
-            driver.quit()
-
-            return False
-
-        if not password_input:
-
-            log("PASSWORD INPUT NOT FOUND")
-
-            print("false")
-
-            driver.quit()
-
-            return False
-
-        log("INPUTS FOUND")
-
-        # -------------------------
-        # ENTER USERNAME
-        # -------------------------
+        log("USERNAME INPUT FOUND")
 
         username_input.click()
-
-        time.sleep(1)
 
         username_input.clear()
 
@@ -194,12 +143,25 @@ def login_instagram(username, password):
         log("USERNAME ENTERED")
 
         # -------------------------
-        # ENTER PASSWORD
+        # PASSWORD INPUT
         # -------------------------
 
-        password_input.click()
+        password_input = wait.until(
 
-        time.sleep(1)
+            EC.presence_of_element_located(
+
+                (
+                    By.NAME,
+                    "password"
+                )
+
+            )
+
+        )
+
+        log("PASSWORD INPUT FOUND")
+
+        password_input.click()
 
         password_input.clear()
 
