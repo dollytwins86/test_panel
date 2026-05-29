@@ -56,7 +56,7 @@ def login_instagram(username, password):
         login_url = "https://www.instagram.com/accounts/login/"
         log("OPEN LOGIN PAGE")
         driver.get(login_url)
-        time.sleep(8)
+        time.sleep(4)
         log(f"CURRENT URL: {driver.current_url}")
 
         username_input = wait.until(EC.presence_of_element_located((By.NAME, "email")))
@@ -75,7 +75,7 @@ def login_instagram(username, password):
 
         password_input.send_keys(Keys.RETURN)
         log("LOGIN SUBMITTED")
-        time.sleep(8)
+        time.sleep(4)
         log(f"FINAL URL: {driver.current_url}")
 
         if "accounts/login" not in driver.current_url:
