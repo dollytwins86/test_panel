@@ -12,9 +12,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -46,7 +43,7 @@ def login_instagram(username, password):
         options.binary_location = "/usr/bin/google-chrome"
 
         # -------------------------
-        # UBUNTU / WSL
+        # UBUNTU / WSL FIXES
         # -------------------------
 
         options.add_argument("--no-sandbox")
@@ -127,10 +124,8 @@ def login_instagram(username, password):
 
         log("DRIVER CREATED")
 
-        wait = WebDriverWait(driver, 60)
-
         # -------------------------
-        # OPEN LOGIN PAGE
+        # OPEN PAGE
         # -------------------------
 
         login_url = (
@@ -141,26 +136,56 @@ def login_instagram(username, password):
 
         driver.get(login_url)
 
-        time.sleep(10)
+        # صبر واقعی برای render
+        time.sleep(15)
 
         log(f"CURRENT URL: {driver.current_url}")
 
         # -------------------------
-        # USERNAME INPUT
+        # FIND INPUTS USING JS
         # -------------------------
 
-        username_input = wait.until(
-            EC.presence_of_element_located(
-                (
-                    By.XPATH,
-                    "//input[@name='username']"
-                )
-            )
-        )
+        username_input = driver.execute_script("""
+            return document.querySelector(
+                "input[name='username']"
+            );
+        """)
 
-        log("USERNAME INPUT FOUND")
+        password_input = driver.execute_script("""
+            return document.querySelector(
+                "input[name='password']"
+            );
+        """)
+
+        if not username_input:
+
+            log("USERNAME INPUT NOT FOUND")
+
+            print("false")
+
+            driver.quit()
+
+            return False
+
+        if not password_input:
+
+            log("PASSWORD INPUT NOT FOUND")
+
+            print("false")
+
+            driver.quit()
+
+            return False
+
+        log("INPUTS FOUND")
+
+        # -------------------------
+        # ENTER USERNAME
+        # -------------------------
 
         username_input.click()
+
+        time.sleep(1)
 
         username_input.clear()
 
@@ -169,21 +194,12 @@ def login_instagram(username, password):
         log("USERNAME ENTERED")
 
         # -------------------------
-        # PASSWORD INPUT
+        # ENTER PASSWORD
         # -------------------------
 
-        password_input = wait.until(
-            EC.presence_of_element_located(
-                (
-                    By.XPATH,
-                    "//input[@name='password']"
-                )
-            )
-        )
-
-        log("PASSWORD INPUT FOUND")
-
         password_input.click()
+
+        time.sleep(1)
 
         password_input.clear()
 
@@ -192,16 +208,20 @@ def login_instagram(username, password):
         log("PASSWORD ENTERED")
 
         # -------------------------
-        # LOGIN BUTTON
+        # LOGIN
         # -------------------------
 
         password_input.send_keys(Keys.RETURN)
 
         log("LOGIN SUBMITTED")
 
-        time.sleep(8)
+        time.sleep(10)
 
         log(f"FINAL URL: {driver.current_url}")
+
+        # -------------------------
+        # SUCCESS
+        # -------------------------
 
         if "accounts/login" not in driver.current_url:
 
