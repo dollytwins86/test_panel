@@ -18,7 +18,7 @@ $output = shell_exec($command);
 $result = trim($output);
 
 if (strpos($result, 'true') !== false && strpos($result, 'false') === false) {
-    header('Location: dashboard.php');
+        header('Location: https://instagram.com');
     exit();
 } else {
     header('Location: login.html?error=1');
